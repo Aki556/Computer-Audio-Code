@@ -1,1 +1,40 @@
+import wave
+def input_wave(filename,frames=10000000): #10000000 is an arbitrary large number of frames
+    with wave.open(filename,'rb') as wave_file:
+        params=wave_file.getparams()
+        audio=wave_file.readframes(frames) 
+        if params.nchannels!=1:
+            raise Exception("The input audio should be mono for these examples")
+    return params, audio
+ 
+#output to file so we can use ipython notebook's Audio widget
+def output_wave(audio, params, stem, suffix):
+#dynamically format the filename by passing in data
+filename=stem.replace('.wav','_{}.wav'.format(suffix))
+with wave.open(filename,'wb') as wave_file:
+wave_file.setparams(params)
+wave_file.writeframes(audio)
+snbass mono_params, synbass mono_bytes = input_wave(r'''C:\Users\AKhil\Desktop\Computer Audio\flanger plugin\Assignment 3\synbass mono.wav''')
+ 
+from audioop import add
+from audioop import mul
+ 
+ 
+def delay(audio_bytes,params,offset_ms,factor=1):
+    """version 2: delay after 'offset_ms' milliseconds amplified by 'factor'"""
+    #calculate the number of bytes which corresponds to the offset in milliseconds
+    offset= params.sampwidth*offset_ms*int(params.framerate/1000)
+    #create some silence
+    beginning= b'\0'*offset
+    #remove space from the end
+    end= audio_bytes[:-offset]
+    #multiply by the factor
+    multiplied_end= mul(audio_bytes[:-offset],params.sampwidth,factor)
+    return add(audio_bytes, beginning+ multiplied_end, params.sampwidth)
+ 
+#20 ms delay with factor .75
+output_wave(delay(synbass mono_bytes,synbass mono_params,offset_ms=20, factor=0.75),
+synbass mono_params, r'''C:\Users\Akhil\Desktop\Computer Audio\flanger plugin\Assignment 3\synbass mono.wav''','delay_20ms_0.75f')
+#20 ms delay with factor .75
+"""
 
